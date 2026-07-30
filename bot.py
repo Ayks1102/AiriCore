@@ -1,5 +1,6 @@
 import os
 import re
+import subprocess
 import sys
 import time
 import shutil
@@ -12,7 +13,7 @@ CHILD_ARG = "--airicore-child"
 if __name__ == "__main__" and CHILD_ARG not in sys.argv:
     _self = os.path.abspath(__file__)
     while 1:
-        os.system(f'"{sys.executable}" "{_self}" {CHILD_ARG}')
+        subprocess.call([sys.executable, _self, CHILD_ARG])
         print("Restarting...")
         time.sleep(2)
 
