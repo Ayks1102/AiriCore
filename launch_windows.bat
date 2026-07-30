@@ -1,50 +1,48 @@
 @echo off
-chcp 65001 >nul
+setlocal EnableExtensions EnableDelayedExpansion
+chcp 65001 >nul 2>nul
 title AiriCore launcher (Windows)
-setlocal enabledelayedexpansion
 
 set "ENV_NAME=airicore"
 set "PROJECT_DIR=%~dp0"
-cd /d "%PROJECT_DIR%"
+cd /d "%PROJECT_DIR%" || (
+    echo [ERROR] Cannot enter project directory: %PROJECT_DIR%
+    pause
+    exit /b 1
+)
 set "LANG=en_US.UTF-8"
 
-echo [==^>] AiriCore 一键启动 (Windows)
-echo     项目目录: %PROJECT_DIR%
+echo [INFO] AiriCore launcher (Windows)
+echo [INFO] Project directory: %PROJECT_DIR%
 
 set "CONDA_BAT="
-for %%D in (
-    "%USERPROFILE%\miniconda3\condabin\conda.bat"
-    "%USERPROFILE%\anaconda3\condabin\conda.bat"
-    "C:\ProgramData\miniconda3\condabin\conda.bat"
-    "C:\ProgramData\Anaconda3\condabin\conda.bat"
-) do (
-    if exist "%%~D" (
-        set "CONDA_BAT=%%~D"
-        goto :found_conda
+if exist "%USERPROFILE%\miniconda3\condabin\conda.bat" set "CONDA_BAT=%USERPROFILE%\miniconda3\condabin\conda.bat"
+if not defined CONDA_BAT if exist "%USERPROFILE%\anaconda3\condabin\conda.bat" set "CONDA_BAT=%USERPROFILE%\anaconda3\condabin\conda.bat"
+if not defined CONDA_BAT if exist "C:\ProgramData\miniconda3\condabin\conda.bat" set "CONDA_BAT=C:\ProgramData\miniconda3\condabin\conda.bat"
+if not defined CONDA_BAT if exist "C:\ProgramData\Anaconda3\condabin\conda.bat" set "CONDA_BAT=C:\ProgramData\Anaconda3\condabin\conda.bat"
+
+if not defined CONDA_BAT (
+    where conda >nul 2>nul
+    if not errorlevel 1 (
+        for /f "delims=" %%B in ('conda info --base 2^>nul') do set "CONDA_BASE=%%B"
+        if defined CONDA_BASE if exist "!CONDA_BASE!\condabin\conda.bat" set "CONDA_BAT=!CONDA_BASE!\condabin\conda.bat"
     )
 )
 
-where conda >nul 2>nul
-if %errorlevel%==0 (
-    for /f "delims=" %%B in ('conda info --base 2^>nul') do set "CONDA_BASE=%%B"
-    if exist "!CONDA_BASE!\condabin\conda.bat" set "CONDA_BAT=!CONDA_BASE!\condabin\conda.bat"
-)
-
-:found_conda
 if not defined CONDA_BAT (
-    echo 错误: 未检测到 conda, 请先运行部署脚本 一键部署脚本\deploy_windows.ps1
+    echo [ERROR] conda was not found. Please run deploy_windows.ps1 first.
     pause
     exit /b 1
 )
 
-echo [==^>] 使用 conda: !CONDA_BAT!
+echo [INFO] Using conda: !CONDA_BAT!
 call "!CONDA_BAT!" activate %ENV_NAME%
-if %errorlevel% neq 0 (
-    echo 错误: 无法激活环境 '%ENV_NAME%', 请先运行部署脚本
+if errorlevel 1 (
+    echo [ERROR] Failed to activate conda env "%ENV_NAME%". Please run the deploy script first.
     pause
     exit /b 1
 )
 
-echo [==^>] 启动 AiriCore (崩溃后自动重启)
+echo [INFO] Starting AiriCore (auto-restart is handled in bot.py)
 python bot.py
 pause
