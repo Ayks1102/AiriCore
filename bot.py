@@ -428,9 +428,27 @@ async def _preload_caches_on_startup():
     task.add_done_callback(_done)
 
 
+def _load_plugins_safely(plugin_dir: str = "plugins"):
+    root = Path(plugin_dir)
+    if not root.exists():
+        logger.warning(f'插件目录不存在: "{plugin_dir}"')
+        return
+
+    for item in sorted(root.iterdir()):
+        if not item.is_dir():
+            continue
+        if item.name.startswith("_") or not (item / "__init__.py").exists():
+            continue
+        plugin_name = f"{plugin_dir}.{item.name}"
+        try:
+            nonebot.load_plugin(plugin_name)
+        except Exception as e:
+            logger.error(f'插件加载失败，已跳过 "{plugin_name}": {e}')
+
+
 if __name__ == "__main__":
     nonebot.load_plugin("nonebot_plugin_localstore")
-    nonebot.load_plugins("plugins")
+    _load_plugins_safely("plugins")
     nonebot.run(
         app="__mp_main__:app",
         ssl_keyfile="./utils/ssl/privkey.key",
