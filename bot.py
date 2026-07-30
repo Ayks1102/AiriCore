@@ -407,6 +407,7 @@ async def _flush_logs_on_shutdown():
 
 
 _bg_tasks = set()
+THIRD_PARTY_PLUGINS = ("nonebot_plugin_ocgbot_v2",)
 
 
 @driver.on_startup
@@ -439,6 +440,8 @@ def _load_plugins_safely(plugin_dir: str = "plugins"):
             continue
         if item.name.startswith("_") or not (item / "__init__.py").exists():
             continue
+        if item.name in THIRD_PARTY_PLUGINS:
+            continue
         plugin_name = f"{plugin_dir}.{item.name}"
         try:
             nonebot.load_plugin(plugin_name)
@@ -446,8 +449,27 @@ def _load_plugins_safely(plugin_dir: str = "plugins"):
             logger.error(f'插件加载失败，已跳过 "{plugin_name}": {e}')
 
 
+def _ensure_plugin_import_path(plugin_dir: str = "plugins"):
+    plugins_path = (Path(__file__).parent / plugin_dir).resolve()
+    if not plugins_path.exists():
+        return
+    plugins_path_str = str(plugins_path)
+    if plugins_path_str not in sys.path:
+        sys.path.insert(0, plugins_path_str)
+
+
+def _load_third_party_plugins():
+    for plugin_name in THIRD_PARTY_PLUGINS:
+        try:
+            nonebot.load_plugin(plugin_name)
+        except Exception as e:
+            logger.error(f'第三方插件加载失败，已跳过 "{plugin_name}": {e}')
+
+
 if __name__ == "__main__":
     nonebot.load_plugin("nonebot_plugin_localstore")
+    _ensure_plugin_import_path("plugins")
+    _load_third_party_plugins()
     _load_plugins_safely("plugins")
     nonebot.run(
         app="__mp_main__:app",
