@@ -449,8 +449,4 @@ def _load_plugins_safely(plugin_dir: str = "plugins"):
 if __name__ == "__main__":
     nonebot.load_plugin("nonebot_plugin_localstore")
     _load_plugins_safely("plugins")
-    nonebot.run(
-        app="__mp_main__:app",
-        ssl_keyfile="./utils/ssl/privkey.key",
-        ssl_certfile="./utils/ssl/fullchain.pem",
-    )
+    nonebot.run(app="__mp_main__:app")
