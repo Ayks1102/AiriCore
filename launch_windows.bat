@@ -8,7 +8,7 @@ set "PROJECT_DIR=%~dp0"
 cd /d "%PROJECT_DIR%"
 set "LANG=en_US.UTF-8"
 
-echo ==> AiriCore 一键启动 (Windows)
+echo [==^>] AiriCore 一键启动 (Windows)
 echo     项目目录: %PROJECT_DIR%
 
 set "CONDA_BAT="
@@ -37,7 +37,7 @@ if not defined CONDA_BAT (
     exit /b 1
 )
 
-echo ==> 使用 conda: !CONDA_BAT!
+echo [==^>] 使用 conda: !CONDA_BAT!
 call "!CONDA_BAT!" activate %ENV_NAME%
 if %errorlevel% neq 0 (
     echo 错误: 无法激活环境 '%ENV_NAME%', 请先运行部署脚本
@@ -45,6 +45,6 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo ==> 启动 AiriCore (崩溃后自动重启)
+echo [==^>] 启动 AiriCore (崩溃后自动重启)
 python bot.py
 pause
